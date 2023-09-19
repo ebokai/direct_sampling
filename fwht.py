@@ -1,5 +1,7 @@
 import numpy as np
+import time
 from numba import njit
+from spin_tools import tools
 
 @njit(fastmath=True)
 def fwht(u):
@@ -16,7 +18,59 @@ def fwht(u):
         h *= 2
     return v
 
+@njit(fastmath=True)
+def fwht_roll(u, n):
 
-def fwht_roll(u):
+    idx = np.arange(2**n)
+
+    for i in range(n):
+
+        i0 = np.array([bool((j//(2**i))%2) for j in idx])
+        m0 = idx[~i0]
+        m1 = idx[i0]
+        
+        a0 = u[m0]
+        a1 = u[m1]
+        x = a0 + a1
+        y = a0 - a1
+
+        u[m0] = x 
+        u[m1] = y
 
     return u
+
+
+n = 12
+runs = 20
+perf = np.zeros((runs,3))
+
+for i in range(runs + 1):
+
+    np.random.seed(0)
+    u = np.random.uniform(-1,1,2**n)
+    start = time.perf_counter()
+    fwht(u)
+    end = time.perf_counter()
+    if i > 0:
+        perf[i-1,0] = end - start
+
+    np.random.seed(0)
+    u = np.random.uniform(-1,1,2**n)
+    start = time.perf_counter()
+    fwht_roll(u, n)
+    end = time.perf_counter()
+    if i > 0:
+        perf[i-1,1] = end - start
+
+    np.random.seed(0)
+    u = np.random.uniform(-1,1,2**n)
+    fn = tools.nkron(n)
+
+    start = time.perf_counter()
+    x = fn @ u 
+    end = time.perf_counter()
+    if i > 0:
+        perf[i-1,2] = end - start
+
+
+print(np.mean(perf, axis = 0))
