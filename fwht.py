@@ -21,6 +21,16 @@ def fwht(u):
 @njit(fastmath=True)
 def fwht_roll(u, n):
 
+    """
+    Different implementation exploiting the fact that 
+    the appropriate indices can be generated beforehand.
+
+    This isn't actually faster than the explicit
+    FWHT above but might be a useful starting point for 
+    possible optimization or as an another way of looking 
+    at the FWHT structure.
+    """
+
     idx = np.arange(2**n)
 
     for i in range(n):
@@ -31,46 +41,35 @@ def fwht_roll(u, n):
         
         a0 = u[m0]
         a1 = u[m1]
-        x = a0 + a1
-        y = a0 - a1
 
-        u[m0] = x 
-        u[m1] = y
+        u[m0] = a0 + a1
+        u[m1] = a0 - a1
 
     return u
 
+if __name__ == "__main__":
 
-n = 12
-runs = 20
-perf = np.zeros((runs,3))
+    # run tests if not used as module
+    n = 18
+    runs = 20
+    perf = np.zeros((runs,2))
 
-for i in range(runs + 1):
+    for i in range(runs + 1):
 
-    np.random.seed(0)
-    u = np.random.uniform(-1,1,2**n)
-    start = time.perf_counter()
-    fwht(u)
-    end = time.perf_counter()
-    if i > 0:
-        perf[i-1,0] = end - start
+        np.random.seed(0)
+        u = np.random.uniform(-1,1,2**n)
+        start = time.perf_counter()
+        fwht(u)
+        end = time.perf_counter()
+        if i > 0:
+            perf[i-1,0] = end - start
 
-    np.random.seed(0)
-    u = np.random.uniform(-1,1,2**n)
-    start = time.perf_counter()
-    fwht_roll(u, n)
-    end = time.perf_counter()
-    if i > 0:
-        perf[i-1,1] = end - start
+        np.random.seed(0)
+        u = np.random.uniform(-1,1,2**n)
+        start = time.perf_counter()
+        fwht_roll(u, n)
+        end = time.perf_counter()
+        if i > 0:
+            perf[i-1,1] = end - start
 
-    np.random.seed(0)
-    u = np.random.uniform(-1,1,2**n)
-    fn = tools.nkron(n)
-
-    start = time.perf_counter()
-    x = fn @ u 
-    end = time.perf_counter()
-    if i > 0:
-        perf[i-1,2] = end - start
-
-
-print(np.mean(perf, axis = 0))
+    print(np.mean(perf, axis = 0))
