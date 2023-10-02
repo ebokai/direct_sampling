@@ -4,11 +4,11 @@ from fwht import *
 def generate_data(model, pars, n, states, N = 1000):
 
     """
-    model: list of integer values corresponding to interactions
-    pars: list of real valued parameters of same length as model
-    n: number of variables
-    states = list of all 2**n states in desired format
-    N: number of data samples to return
+    model:   list/array of integer values corresponding to interactions
+    pars:    list/array of real valued parameters of same length as model
+    n:       number of variables
+    states:  list/array of all 2**n states in desired format
+    N:       number of data samples to return
     """
 
     if len(model) != len(pars):
@@ -24,12 +24,13 @@ def generate_data(model, pars, n, states, N = 1000):
 
 if __name__ == "__main__":
 
-    n = 10 
+    n = 10 # number of variables
+    m = 8 # number of interactions
+
     state_strings = [format(i,f'0{n}b') for i in range(2**n)]
 
-    model = np.random.choice(np.arange(1,2**n), 8, replace = False)
-    pars = np.random.uniform(-1,1,len(model))
+    model = np.random.choice(np.arange(1,2**n), m, replace = False)
+    pars = np.random.uniform(-1, 1, len(model))
 
     data = generate_data(model, pars, n, state_strings)
     print(data)
-
